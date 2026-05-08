@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>User Panel</title></head>
+<body style="font-family: sans-serif; padding: 20px;">
+    <h1>📖 User Panel: Library Catalog</h1>
+    <a href="/logout">[ Log Out ]</a>
+    <hr>
+
+    <h3>Search Books</h3>
+    <form action="/search" method="POST">
+        <input type="text" name="query" placeholder="Enter book title...">
+        <button type="submit">Search</button>
+    </form>
+
+    <h3>Available Books</h3>
+    <table border="1" cellpadding="10" width="100%">
+        <tr><th>Title</th><th>Author</th><th>Genre</th><th>Action</th></tr>
+        {% for book in catalog %}
+        <tr>
+            <td>{{ book.Title }}</td>
+            <td>{{ book.Author }}</td>
+            <td>{{ book.Genre }}</td>
+            <td><button>Checkout</button></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
