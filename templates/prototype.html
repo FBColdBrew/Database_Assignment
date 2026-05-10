@@ -3,25 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library System Prototype</title>
+    <title>Library System</title>
     <style>
-        /* --- GLOBAL STYLES --- */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
         .hidden { display: none !important; }
         .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
         h1, h2, h3 { color: #333; }
         input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #0056b3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button { background: #0056b3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         button:hover { background: #004494; }
-        .btn-danger { background: #d9534f; }
-        .btn-danger:hover { background: #c9302c; }
-        .text-center { text-align: center; }
-        .link { color: #0056b3; cursor: pointer; text-decoration: underline; }
-
-        /* --- DASHBOARD STYLES --- */
+        .btn-danger { background: #d9534f; width: auto; }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-tabs button { background: #e9ecef; color: #333; }
+        .nav-tabs button { background: #e9ecef; color: #333; width: auto; }
         .nav-tabs button.active { background: #0056b3; color: white; }
         .panel { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -30,81 +24,44 @@
     </style>
 </head>
 <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+    <div class="flash-message" style="padding: 15px; margin: 20px auto; max-width: 800px; text-align: center; font-weight: bold; border-radius: 4px; color: white; background-color: {{ '#d9534f' if category == 'error' else '#28a745' }}; transition: opacity 0.5s ease;">
+        {{ message }}
+    </div>
+{% endfor %}
+      {% endif %}
+    {% endwith %}
 
-    <div id="login-screen" class="container">
-        <h2 class="text-center">Library Login</h2>
-        <input type="text" id="login-username" placeholder="Username (Hint: type 'admin' for admin page)">
-        <input type="password" placeholder="Password">
-        <button onclick="handleLogin()" style="width: 100%;">Login</button>
-        <p class="text-center">New here? <span class="link" onclick="switchScreen('register-screen')">Register an account</span></p>
+    {% if not session.get('user_id') %}
+    <div class="container" id="login-container">
+        <h2 style="text-align: center;">Library Login</h2>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit" style="margin-bottom: 10px;">Login</button>
+            <button type="button" onclick="toggleRegister()" style="background-color: #6c757d;">Create New Account</button>
+        </form>
     </div>
 
-    <div id="register-screen" class="container hidden">
-        <h2 class="text-center">Register Account</h2>
-        <input type="text" placeholder="Full Name">
-        <input type="email" placeholder="Email Address">
-        <input type="password" placeholder="Create Password">
-        <button onclick="switchScreen('login-screen')" style="width: 100%;">Register</button>
-        <p class="text-center">Already have an account? <span class="link" onclick="switchScreen('login-screen')">Back to Login</span></p>
+    <div class="container hidden" id="register-container">
+        <h2 style="text-align: center;">Register Account</h2>
+        <form action="/register" method="POST">
+            <input type="text" name="name" placeholder="Full Name" required>
+            <input type="email" name="email" placeholder="Email Address" required>
+            <input type="text" name="username" placeholder="Choose Username" required>
+            <input type="password" name="password" placeholder="Create Password" required>
+            <button type="submit" style="margin-bottom: 10px; background-color: #28a745;">Register</button>
+            <button type="button" onclick="toggleRegister()" style="background-color: #6c757d;">Back to Login</button>
+        </form>
     </div>
-
-    <div id="member-screen" class="container hidden">
-        <div class="dashboard-header">
-            <h2>Member Dashboard</h2>
-            <div>
-                <span style="font-weight: bold; margin-right: 15px;">Wallet: RM <span id="wallet-balance">20.00</span></span>
-                <button class="btn-danger" onclick="switchScreen('login-screen')">Logout</button>
-            </div>
-        </div>
-
-        <div class="nav-tabs">
-            <button onclick="showTab('mem-search', this)" class="active">Search Book</button>
-            <button onclick="showTab('mem-borrow', this)">Borrow Book</button>
-            <button onclick="showTab('mem-return', this)">Return & Penalty</button>
-            <button onclick="showTab('mem-wallet', this)">Reload Wallet</button>
-            <button onclick="showTab('mem-account', this)">User Account</button>
-        </div>
-
-        <div id="mem-search" class="panel">
-            <h3>Search Catalog</h3>
-            <input type="text" placeholder="Enter book title...">
-            <button>Search</button>
-        </div>
-
-        <div id="mem-borrow" class="panel hidden">
-            <h3>Borrow a Book</h3>
-            <label>Select Return Date:</label>
-            <input type="date">
-            <button>Confirm Borrow</button>
-        </div>
-
-        <div id="mem-return" class="panel hidden">
-            <h3>Return Book & Penalties</h3>
-            <p style="color: red; font-weight: bold;">Late Return Penalty: RM 5.00 per day</p>
-            <table>
-                <tr><th>Book Title</th><th>Due Date</th><th>Status</th><th>Action</th></tr>
-                <tr><td>Digital Forensics</td><td>2026-05-01</td><td style="color:red;">2 Days Late (RM 10)</td><td><button>Pay & Return</button></td></tr>
-            </table>
-        </div>
-
-        <div id="mem-wallet" class="panel hidden">
-            <h3>Reload e-Wallet</h3>
-            <input type="number" placeholder="Enter amount (RM)" min="5">
-            <button>Top Up</button>
-        </div>
-
-        <div id="mem-account" class="panel hidden">
-            <h3>Account Settings</h3>
-            <input type="text" value="Student Bob" disabled>
-            <input type="email" value="bob@student.mmu.edu.my" disabled>
-            <button>Update Password</button>
-        </div>
-    </div>
-
-    <div id="admin-screen" class="container hidden">
+    
+    {% elif session.get('role') == 'Admin' %}
+    <div class="container">
         <div class="dashboard-header">
             <h2>Admin Dashboard</h2>
-            <button class="btn-danger" onclick="switchScreen('login-screen')">Logout</button>
+            <form action="/logout"><button class="btn-danger">Logout</button></form>
         </div>
 
         <div class="nav-tabs">
@@ -115,79 +72,310 @@
         </div>
 
         <div id="adm-books" class="panel">
-            <h3>Add / Edit / Remove Books</h3>
-            <input type="text" placeholder="Book Title">
-            <input type="text" placeholder="ISBN">
-            <button>Add Book</button>
+            <h3>Add New Book</h3>
+            <form action="/add_book" method="POST" style="display:flex; gap:10px;">
+                <input type="text" name="title" placeholder="Book Title" required style="flex: 2;">
+                <input type="text" name="genre" placeholder="Genre" required style="flex: 1;">
+                <button type="submit" style="width: auto;">Add Book</button>
+            </form>
+            
+            <table style="margin-top:20px;">
+                <tr><th>ID</th><th>Title</th><th>Genre</th><th>Status</th><th>Action</th></tr>
+                {% for book in data.books %}
+                <tr>
+                    <td>{{ book.ID }}</td>
+                    <td>{{ book.Title }}</td>
+                    <td>{{ book.Genre }}</td>
+                    <td>{{ book.Status }}</td>
+                    <td>
+                        <button onclick="editBook('{{ book.ID }}', '{{ book.Title|escape }}', '{{ book.Genre|escape }}')" style="width: auto; background-color: #ffc107; color: black; margin-right: 5px;">Edit</button>
+                        <button onclick="checkBookStatus('{{ book.Status }}', '{{ book.CurrentUser }}')" style="width: auto; background-color: #17a2b8;">Check Details</button>
+                        <button onclick="deleteBook('{{ book.ID }}', '{{ book.Title|escape }}')" style="width: auto; background-color: #d9534f;">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
         </div>
 
         <div id="adm-users" class="panel hidden">
-            <h3>Manage Users & Payment Status</h3>
+            <h3>Manage Users</h3>
             <table>
-                <tr><th>Name</th><th>Role</th><th>Status</th><th>Action</th></tr>
-                <tr><td>Student Bob</td><td>Patron</td><td style="color: green;">Clear</td><td><button class="btn-danger">Remove</button></td></tr>
-                <tr><td>John Doe</td><td>Patron</td><td style="color: red;">Owes RM 15</td><td><button>Send Reminder</button></td></tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Wallet</th>
+                    <th>Status</th> <th>Penalty</th> <th>Actions</th>
+                </tr>
+                {% for user in data.users %}
+                <tr>
+                    <td>{{ user.ID }}</td>
+                    <td>{{ user.Name }}</td>
+                    <td><strong>{{ user.Role }}</strong></td>
+                    <td>RM {{ "%.2f"|format(user.Wallet) }}</td>
+                    
+                    <td>
+                        {% if user.LoanInfo %}
+                            <small>{{ user.LoanInfo }}</small>
+                        {% else %}
+                            <span style="color: #6c757d;">No Active Loans</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if user.PenaltyCount > 0 %}
+                            <span style="color: #d9534f; font-weight: bold;">Penalty</span>
+                        {% else %}
+                            <span style="color: #28a745;">No Penalty</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if user.Role == 'Admin' %}
+                            <button onclick="changeRole('{{ user.ID }}', 'Member')" style="width: auto; background-color: #6c757d; margin-right: 5px;">Set Member</button>
+                        {% else %}
+                            <button onclick="changeRole('{{ user.ID }}', 'Admin')" style="width: auto; background-color: #007bff; margin-right: 5px;">Set Admin</button>
+                        {% endif %}
+                        <button onclick="confirmDeleteUser('{{ user.ID }}', '{{ user.Name }}')" style="width: auto; background-color: #d9534f;">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
             </table>
         </div>
 
         <div id="adm-penalties" class="panel hidden">
             <h3>Configure Penalty Rates</h3>
-            <label>Current Late Fee per Day (RM):</label>
-            <input type="number" value="5.00">
-            <button>Update Rate</button>
+            <form action="/update_penalty" method="POST">
+                <label>Current Late Fee per Day (RM):</label>
+                <input type="number" name="rate" step="0.01" value="{{ data.penalty_rate }}">
+                <button type="submit">Update Rate</button>
+            </form>
         </div>
 
         <div id="adm-logs" class="panel hidden">
             <h3>System Borrow Logs</h3>
             <table>
-                <tr><th>User</th><th>Book</th><th>Borrow Date</th><th>Expected Return</th></tr>
-                <tr><td>Student Bob</td><td>CyberSec 101</td><td>2026-05-05</td><td>2026-05-19</td></tr>
+                <tr><th>User</th><th>Book</th><th>Borrow Date</th><th>Due Date</th><th>Status</th></tr>
+                {% for log in data.logs %}
+                <tr><td>{{ log.UserName }}</td><td>{{ log.BookTitle }}</td><td>{{ log.BorrowDate }}</td><td>{{ log.DueDate }}</td><td>{{ log.Status }}</td></tr>
+                {% endfor %}
             </table>
         </div>
     </div>
 
+    {% else %}
+    <div class="container">
+        <div class="dashboard-header">
+            <h2>Member Dashboard</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span style="font-weight: bold;">Wallet: RM {{ "%.2f"|format(data.user.Wallet) }}</span>
+                <form action="/logout"><button class="btn-danger">Logout</button></form>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button onclick="showTab('mem-search', this)" class="active">Book List</button>
+            <button onclick="showTab('mem-borrow', this)">Borrow Book</button>
+            <button onclick="showTab('mem-return', this)">Return & Penalty</button>
+            <button onclick="showTab('mem-wallet', this)">Reload Wallet</button>
+            <button onclick="showTab('mem-account', this)">User Account</button>
+        </div>
+
+        <div id="mem-search" class="panel">
+            <h3>Library Catalog</h3> <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Genre</th>
+                    <th>Status</th>
+                </tr>
+                {% for book in data.books %}
+                <tr>
+                    <td>{{ book.ID }}</td>
+                    <td>{{ book.Title }}</td>
+                    <td>{{ book.Genre }}</td> 
+                    <td>
+                        {% if book.Status == 'Available' %}
+                        <span style="color: green; font-weight: bold;">Available</span>
+                        {% else %}
+                        <span style="color: #d9534f; font-weight: bold;">Not Available</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div id="mem-borrow" class="panel hidden">
+            <h3>Borrow a Book</h3>
+            <form action="/borrow" method="POST">
+                <label>Select Book:</label>
+                <select name="book_id" required>
+                    <option value="">-- Choose a Book --</option>
+                    {% for book in data.books %}
+                        {% if book.Status == 'Available' %}
+                            <option value="{{ book.ID }}">{{ book.Title }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <label>Select Return Date:</label>
+                <input type="date" name="due_date" required>
+                <button type="submit">Confirm Borrow</button>
+            </form>
+        </div>
+
+        <div id="mem-return" class="panel hidden">
+            <h3>Return Book & Penalties</h3>
+            <table>
+                <tr><th>Book Title</th><th>Due Date</th><th>Status</th><th>Action</th></tr>
+                {% for loan in data.my_loans %}
+                <tr>
+                    <td>{{ loan.Title }}</td>
+                    <td>{{ loan.DueDate }}</td>
+                    
+                    <td> style="color: {{ 'red' if loan.Status == 'Late' else 'green' }}; font-weight: bold;"
+                        {{ loan.Status }}
+                        {% if loan.Status == 'Late' %}
+                            <br><small>(RM {{ "%.2f"|format(loan.Fine) }})</small>
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        {% if loan.Status == 'Late' %}
+                            <form action="/pay_penalty" method="POST">
+                                <input type="hidden" name="loan_id" value="{{ loan.LoanID }}">
+                                <input type="hidden" name="fine_amount" value="{{ loan.Fine }}">
+                                <button type="submit" style="width: auto; background-color: #d9534f;">Pay RM {{ "%.2f"|format(loan.Fine) }} & Return</button>
+                            </form>
+                        {% else %}
+                            <form action="/return_book" method="POST">
+                                <input type="hidden" name="loan_id" value="{{ loan.LoanID }}">
+                                <button type="submit" style="width: auto; background-color: #5cb85c;">Return Book</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" style="text-align: center;">You have no active borrowed books.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div id="mem-wallet" class="panel hidden">
+            <h3>Reload e-Wallet</h3>
+            <form action="/reload" method="POST">
+                <input type="number" name="amount" placeholder="Enter amount (RM)" min="5" step="0.01" required>
+                <button type="submit">Top Up</button>
+            </form>
+        </div>
+
+        <div id="mem-account" class="panel hidden">
+            <h3>Account Settings</h3>
+            <label>Full Name</label>
+            <input type="text" value="{{ data.user.Name }}" disabled>
+            <label>Email Address</label>
+            <input type="email" value="{{ data.user.Email }}" disabled>
+
+            <hr style="margin: 20px 0; border: 1px solid #eee;">
+            <h3>Change Password</h3>
+            <form action="/change_password" method="POST">
+                <input type="password" name="current_password" placeholder="Current Password" required>
+                <input type="password" name="new_password" placeholder="New Password" required>
+                <input type="password" name="confirm_password" placeholder="Confirm New Password" required>
+                <button type="submit" style="background-color: #ffc107; color: black; margin-top: 10px; width: auto;">Update Password</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <form id="edit-form" action="/edit_book" method="POST" class="hidden">
+        <input type="hidden" name="book_id" id="edit-id">
+        <input type="hidden" name="new_title" id="edit-title">
+        <input type="hidden" name="new_genre" id="edit-genre">
+    </form>
+    
+    <form id="delete-form" action="/delete_book" method="POST" class="hidden">
+        <input type="hidden" name="book_id" id="delete-id">
+    </form>
+
+    <form id="delete-user-form" action="/delete_user" method="POST" class="hidden">
+        <input type="hidden" name="user_id" id="target-user-id">
+    </form>
+
+    <form id="role-form" action="/set_role" method="POST" class="hidden">
+        <input type="hidden" name="user_id" id="role-user-id">
+        <input type="hidden" name="new_role" id="new-role-val">
+    </form>
+
     <script>
-        // Function to switch between the main screens (Login, Register, Admin, Member)
-        function switchScreen(screenId) {
-            // Hide all main containers
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('register-screen').classList.add('hidden');
-            document.getElementById('member-screen').classList.add('hidden');
-            document.getElementById('admin-screen').classList.add('hidden');
-            
-            // Show the requested container
-            document.getElementById(screenId).classList.remove('hidden');
-        }
-
-        // Logic to simulate a login check
-        function handleLogin() {
-            const username = document.getElementById('login-username').value.toLowerCase();
-            if (username === 'admin') {
-                switchScreen('admin-screen');
-            } else {
-                switchScreen('member-screen');
-            }
-        }
-
-        // Function to switch between tabs inside the dashboards
         function showTab(tabId, btnElement) {
-            // Find which panel this belongs to (member or admin) by looking at the ID prefix
-            const isMember = tabId.startsWith('mem');
-            const parentScreen = isMember ? document.getElementById('member-screen') : document.getElementById('admin-screen');
-            
-            // Hide all panels within that specific dashboard
-            const panels = parentScreen.querySelectorAll('.panel');
+            const container = btnElement.closest('.container');
+            const panels = container.querySelectorAll('.panel');
             panels.forEach(panel => panel.classList.add('hidden'));
-            
-            // Remove 'active' class from all buttons in that dashboard's nav
-            const buttons = parentScreen.querySelectorAll('.nav-tabs button');
+            const buttons = container.querySelectorAll('.nav-tabs button');
             buttons.forEach(btn => btn.classList.remove('active'));
-            
-            // Show the selected panel and highlight the clicked button
             document.getElementById(tabId).classList.remove('hidden');
             btnElement.classList.add('active');
         }
-    </script>
 
+        function checkBookStatus(status, user) {
+            let person = (user && user !== 'None') ? user : "Unknown User";
+            if (status === 'Available') {
+                alert("✔️ This book is currently resting safely in the Library.");
+            } else if (status === 'Lost') {
+                alert("❌ This book was reported LOST by: " + person);
+            } else {
+                alert("📖 This book is currently BORROWED by: " + person);
+            }
+        }
+
+        function editBook(id, currentTitle, currentGenre) {
+            let newTitle = prompt("Edit Book Title:", currentTitle);
+            if (newTitle === null || newTitle.trim() === "") return; 
+            let newGenre = prompt("Edit Book Genre:", currentGenre);
+            if (newGenre === null || newGenre.trim() === "") return; 
+
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-title').value = newTitle;
+            document.getElementById('edit-genre').value = newGenre;
+            document.getElementById('edit-form').submit();
+        }
+
+        function toggleRegister() {
+            document.getElementById('login-container').classList.toggle('hidden');
+            document.getElementById('register-container').classList.toggle('hidden');
+        }
+
+        setTimeout(function() {
+            let messages = document.querySelectorAll('.flash-message');
+            messages.forEach(function(msg) {
+                msg.style.opacity = '0';
+                setTimeout(function() { msg.style.display = 'none'; }, 500);
+            });
+        }, 3000);
+
+        function deleteBook(id, title) {
+            if (confirm("Are you sure you want to delete '" + title + "' permanently?")) {
+                document.getElementById('delete-id').value = id;
+                document.getElementById('delete-form').submit();
+            }
+        }
+
+        function confirmDeleteUser(id, name) {
+            if (confirm("Are you sure you want to permanently delete user '" + name + "' and all their loan history?")) {
+                document.getElementById('target-user-id').value = id;
+                document.getElementById('delete-user-form').submit();
+            }
+        }
+
+        function changeRole(id, role) {
+            if (confirm("Change this user's role to " + role + "?")) {
+                document.getElementById('role-user-id').value = id;
+                document.getElementById('new-role-val').value = role;
+                document.getElementById('role-form').submit();
+            }
+        }
+    
+    </script>
 </body>
 </html>
