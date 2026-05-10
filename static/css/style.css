@@ -1,0 +1,29 @@
+/* --- GLOBAL STYLES --- */
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+.centered-body { display: flex; justify-content: center; align-items: center; height: 100vh; }
+.container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; }
+.login-box { max-width: 400px; }
+.dashboard-box { max-width: 800px; margin: auto; }
+.hidden { display: none !important; }
+
+/* --- TYPOGRAPHY & FORMS --- */
+h2, h3 { color: #333; }
+.text-center { text-align: center; }
+input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+button { background: #0056b3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+button.full-width { width: 100%; }
+button:hover { background: #004494; }
+.btn-danger { background: #d9534f; color: white; text-decoration: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; display: inline-block; border: none; }
+.btn-danger:hover { background: #c9302c; }
+a { color: #0056b3; text-decoration: none; font-weight: bold; }
+a:hover { text-decoration: underline; }
+
+/* --- DASHBOARD ELEMENTS --- */
+.dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+.nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.nav-tabs button { background: #e9ecef; color: #333; }
+.nav-tabs button.active { background: #0056b3; color: white; }
+.panel { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+th { background-color: #f8f9fa; }

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library System Prototype</title>
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .hidden { display: none !important; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        h1, h2, h3 { color: #333; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #0056b3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #004494; }
+        .btn-danger { background: #d9534f; }
+        .btn-danger:hover { background: #c9302c; }
+        .text-center { text-align: center; }
+        .link { color: #0056b3; cursor: pointer; text-decoration: underline; }
+
+        /* --- DASHBOARD STYLES --- */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .nav-tabs button { background: #e9ecef; color: #333; }
+        .nav-tabs button.active { background: #0056b3; color: white; }
+        .panel { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="container">
+        <h2 class="text-center">Library Login</h2>
+        <input type="text" id="login-username" placeholder="Username (Hint: type 'admin' for admin page)">
+        <input type="password" placeholder="Password">
+        <button onclick="handleLogin()" style="width: 100%;">Login</button>
+        <p class="text-center">New here? <span class="link" onclick="switchScreen('register-screen')">Register an account</span></p>
+    </div>
+
+    <div id="register-screen" class="container hidden">
+        <h2 class="text-center">Register Account</h2>
+        <input type="text" placeholder="Full Name">
+        <input type="email" placeholder="Email Address">
+        <input type="password" placeholder="Create Password">
+        <button onclick="switchScreen('login-screen')" style="width: 100%;">Register</button>
+        <p class="text-center">Already have an account? <span class="link" onclick="switchScreen('login-screen')">Back to Login</span></p>
+    </div>
+
+    <div id="member-screen" class="container hidden">
+        <div class="dashboard-header">
+            <h2>Member Dashboard</h2>
+            <div>
+                <span style="font-weight: bold; margin-right: 15px;">Wallet: RM <span id="wallet-balance">20.00</span></span>
+                <button class="btn-danger" onclick="switchScreen('login-screen')">Logout</button>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button onclick="showTab('mem-search', this)" class="active">Search Book</button>
+            <button onclick="showTab('mem-borrow', this)">Borrow Book</button>
+            <button onclick="showTab('mem-return', this)">Return & Penalty</button>
+            <button onclick="showTab('mem-wallet', this)">Reload Wallet</button>
+            <button onclick="showTab('mem-account', this)">User Account</button>
+        </div>
+
+        <div id="mem-search" class="panel">
+            <h3>Search Catalog</h3>
+            <input type="text" placeholder="Enter book title...">
+            <button>Search</button>
+        </div>
+
+        <div id="mem-borrow" class="panel hidden">
+            <h3>Borrow a Book</h3>
+            <label>Select Return Date:</label>
+            <input type="date">
+            <button>Confirm Borrow</button>
+        </div>
+
+        <div id="mem-return" class="panel hidden">
+            <h3>Return Book & Penalties</h3>
+            <p style="color: red; font-weight: bold;">Late Return Penalty: RM 5.00 per day</p>
+            <table>
+                <tr><th>Book Title</th><th>Due Date</th><th>Status</th><th>Action</th></tr>
+                <tr><td>Digital Forensics</td><td>2026-05-01</td><td style="color:red;">2 Days Late (RM 10)</td><td><button>Pay & Return</button></td></tr>
+            </table>
+        </div>
+
+        <div id="mem-wallet" class="panel hidden">
+            <h3>Reload e-Wallet</h3>
+            <input type="number" placeholder="Enter amount (RM)" min="5">
+            <button>Top Up</button>
+        </div>
+
+        <div id="mem-account" class="panel hidden">
+            <h3>Account Settings</h3>
+            <input type="text" value="Student Bob" disabled>
+            <input type="email" value="bob@student.mmu.edu.my" disabled>
+            <button>Update Password</button>
+        </div>
+    </div>
+
+    <div id="admin-screen" class="container hidden">
+        <div class="dashboard-header">
+            <h2>Admin Dashboard</h2>
+            <button class="btn-danger" onclick="switchScreen('login-screen')">Logout</button>
+        </div>
+
+        <div class="nav-tabs">
+            <button onclick="showTab('adm-books', this)" class="active">Manage Books</button>
+            <button onclick="showTab('adm-users', this)">Manage Users</button>
+            <button onclick="showTab('adm-penalties', this)">Manage Penalties</button>
+            <button onclick="showTab('adm-logs', this)">Borrow Logs</button>
+        </div>
+
+        <div id="adm-books" class="panel">
+            <h3>Add / Edit / Remove Books</h3>
+            <input type="text" placeholder="Book Title">
+            <input type="text" placeholder="ISBN">
+            <button>Add Book</button>
+        </div>
+
+        <div id="adm-users" class="panel hidden">
+            <h3>Manage Users & Payment Status</h3>
+            <table>
+                <tr><th>Name</th><th>Role</th><th>Status</th><th>Action</th></tr>
+                <tr><td>Student Bob</td><td>Patron</td><td style="color: green;">Clear</td><td><button class="btn-danger">Remove</button></td></tr>
+                <tr><td>John Doe</td><td>Patron</td><td style="color: red;">Owes RM 15</td><td><button>Send Reminder</button></td></tr>
+            </table>
+        </div>
+
+        <div id="adm-penalties" class="panel hidden">
+            <h3>Configure Penalty Rates</h3>
+            <label>Current Late Fee per Day (RM):</label>
+            <input type="number" value="5.00">
+            <button>Update Rate</button>
+        </div>
+
+        <div id="adm-logs" class="panel hidden">
+            <h3>System Borrow Logs</h3>
+            <table>
+                <tr><th>User</th><th>Book</th><th>Borrow Date</th><th>Expected Return</th></tr>
+                <tr><td>Student Bob</td><td>CyberSec 101</td><td>2026-05-05</td><td>2026-05-19</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Function to switch between the main screens (Login, Register, Admin, Member)
+        function switchScreen(screenId) {
+            // Hide all main containers
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('register-screen').classList.add('hidden');
+            document.getElementById('member-screen').classList.add('hidden');
+            document.getElementById('admin-screen').classList.add('hidden');
+            
+            // Show the requested container
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Logic to simulate a login check
+        function handleLogin() {
+            const username = document.getElementById('login-username').value.toLowerCase();
+            if (username === 'admin') {
+                switchScreen('admin-screen');
+            } else {
+                switchScreen('member-screen');
+            }
+        }
+
+        // Function to switch between tabs inside the dashboards
+        function showTab(tabId, btnElement) {
+            // Find which panel this belongs to (member or admin) by looking at the ID prefix
+            const isMember = tabId.startsWith('mem');
+            const parentScreen = isMember ? document.getElementById('member-screen') : document.getElementById('admin-screen');
+            
+            // Hide all panels within that specific dashboard
+            const panels = parentScreen.querySelectorAll('.panel');
+            panels.forEach(panel => panel.classList.add('hidden'));
+            
+            // Remove 'active' class from all buttons in that dashboard's nav
+            const buttons = parentScreen.querySelectorAll('.nav-tabs button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show the selected panel and highlight the clicked button
+            document.getElementById(tabId).classList.remove('hidden');
+            btnElement.classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
