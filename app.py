@@ -194,6 +194,73 @@ def logout():
     session.clear()
     return redirect('/')
 
+
+
+@app.route('/verify_identity', methods=['POST'])
+def verify_identity():
+    username = request.form['username']
+    email = request.form['email']
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    # Check if a user with BOTH that username and email exists
+    cursor.execute('SELECT ID FROM Users WHERE Username = ? AND Email = ?', (username, email))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if user:
+        # Save their ID temporarily in the session to authorize the reset
+        session['reset_user_id'] = user.ID
+        # Render the template and pass the flag to show the New Password screen
+        return render_template('prototype.html', reset_user_id=user.ID)
+    else:
+        flash("Identity verification failed. Username and email do not match.", "error")
+        return redirect('/')
+
+@app.route('/update_forgotten_password', methods=['POST'])
+def update_forgotten_password():
+    # Security check: Make sure they went through the verification step first
+    if 'reset_user_id' not in session:
+        return redirect('/')
+        
+    new_password = request.form['new_password']
+    confirm_password = request.form['confirm_password']
+    
+    if new_password != confirm_password:
+        flash("Passwords do not match! Try again.", "error")
+        # Keep them on the reset screen if they made a typo
+        return render_template('prototype.html', reset_user_id=session['reset_user_id'])
+        
+    # Securely hash the new password
+    hashed_new = generate_password_hash(new_password)
+    user_id = session['reset_user_id']
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 1. Update the password
+    cursor.execute("UPDATE Users SET Password = ? WHERE ID = ?", (hashed_new, user_id))
+    
+    # 2. Get the username for the log
+    cursor.execute("SELECT Username FROM Users WHERE ID = ?", (user_id,))
+    username = cursor.fetchone()[0]
+    
+    # 3. Insert the audit log
+    cursor.execute("""
+        INSERT INTO PasswordChangeLogs (UserID, Username, ChangeType) 
+        VALUES (?, ?, 'Forgot Password Reset')
+    """, (user_id, username))
+    
+    conn.commit()
+    conn.close()
+    
+    # Remove the temporary reset authorization from the session
+    session.pop('reset_user_id', None)
+    flash("Password successfully reset! You can now log in.", "success")
+    
+    
+    return redirect('/')
+
 # --- MEMBER FUNCTIONS ---
 @app.route('/borrow', methods=['POST'])
 def borrow():
@@ -281,7 +348,19 @@ def change_password():
     # YOUR SECURITY: Upgraded change password to securely check and hash the new one!
     if user and check_password_hash(user.Password, current_password):
         hashed_new = generate_password_hash(new_password)
+        
+        # 1. Update the password
         cursor.execute("UPDATE Users SET Password = ? WHERE ID = ?", (hashed_new, session['user_id']))
+        
+        # 2. Get the username from the current session
+        username = session.get('username', 'Unknown User')
+        
+        # 3. Insert the audit log
+        cursor.execute("""
+            INSERT INTO PasswordChangeLogs (UserID, Username, ChangeType) 
+            VALUES (?, ?, 'In-App Password Change')
+        """, (session['user_id'], username))
+        
         conn.commit()
         flash("Success: Password updated successfully!", "success")
     else:
