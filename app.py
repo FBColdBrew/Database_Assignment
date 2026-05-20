@@ -29,9 +29,10 @@ def index():
             """)
             data['books'] = cursor.fetchall()
             
+            # Adam's Update: Added ICNumber to the Users query
             cursor.execute("""
                 SELECT 
-                    U.ID, U.Name, U.Username, U.Role, U.Wallet,
+                    U.ID, U.Name, U.ICNumber, U.Username, U.Role, U.Wallet,
                     (SELECT TOP 1 B.Title + ' (Borrowed: ' + FORMAT(L.BorrowDate, 'dd/MM') + ', Due: ' + FORMAT(L.DueDate, 'dd/MM') + ')' 
                      FROM Loans L JOIN Books B ON L.BookID = B.ID 
                      WHERE L.UserID = U.ID AND L.Status != 'Returned' 
@@ -46,7 +47,7 @@ def index():
 
             cursor.execute("SELECT Value FROM Settings WHERE Name = 'LateFee'")
             data['penalty_rate'] = cursor.fetchone()[0]
-            # Get borrow logs
+            
             cursor.execute("""
                 SELECT L.ID, U.Name as UserName, B.Title as BookTitle, L.BorrowDate, L.DueDate, L.Status 
                 FROM Loans L 
@@ -54,20 +55,26 @@ def index():
                 JOIN Books B ON L.BookID = B.ID
             """)
             data['logs'] = cursor.fetchall()
+
+            # Adam's Update: Added the LoginLogs query for the Admin Dashboard
+            cursor.execute("""
+                SELECT Username, FORMAT(AttemptTime, 'dd/MM/yyyy HH:mm:ss') as AttemptTime, Status, Reason
+                FROM LoginLogs
+                ORDER BY ID DESC
+            """)
+            data['login_logs'] = cursor.fetchall()
+            
         else:
             # Member Data
-            
             cursor.execute("SELECT ID, Title, Genre, Status FROM Books")
             data['books'] = cursor.fetchall()
             
             cursor.execute("SELECT Name, Email, Wallet FROM Users WHERE ID = ?", (session['user_id'],))
             data['user'] = cursor.fetchone()
             
-            # Fetch the current penalty rate so we can calculate fines
             cursor.execute("SELECT Value FROM Settings WHERE Name = 'LateFee'")
             penalty_rate = cursor.fetchone()[0]
             
-            # Get My Loans
             cursor.execute("""
                 SELECT L.ID as LoanID, B.Title, L.DueDate, L.Status 
                 FROM Loans L 
@@ -77,23 +84,18 @@ def index():
             raw_loans = cursor.fetchall()
             
             my_loans = []
-            today = date.today() # Gets current date
+            today = date.today() 
             
             for loan in raw_loans:
-                # Handle the date conversion safely
                 if isinstance(loan.DueDate, str):
                     actual_date = datetime.strptime(loan.DueDate, '%Y-%m-%d').date()
                 else:
-                    # If PyODBC returns a datetime object, convert it to just a date
                     try:
                         actual_date = loan.DueDate.date()
                     except AttributeError:
                         actual_date = loan.DueDate
-                        
-                # 1. Format to Malaysia Date (DD/MM/YYYY)
                 my_date_str = actual_date.strftime('%d/%m/%Y')
                 
-                # 2. Calculate if Late using the real-time clock
                 days_late = (today - actual_date).days
                 status = loan.Status
                 fine = 0.00
@@ -112,9 +114,6 @@ def index():
                 
             data['my_loans'] = my_loans
             
-            # Get My Loans
-            
-            
         conn.close()
     return render_template('prototype.html', data=data)
 
@@ -126,45 +125,68 @@ def login():
     
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # Grab the user's details, including the hashed password
     cursor.execute('SELECT ID, Username, Password, Role FROM Users WHERE Username = ?', (username,))
     user = cursor.fetchone()
-    conn.close()
     
-    # Check if user exists AND password is correct
-    if user and user.Password == password:
+    status = ""
+    reason = ""
+    
+    # --- YOUR SECURITY + ADAM'S LOGGING MERGED ---
+    if not user:
+        status = "Failed"
+        reason = "Unknown Username"
+        flash("The username or password is wrong!", "error")
+        
+    # YOUR FIX: Using Werkzeug to securely check the hash!
+    elif not check_password_hash(user.Password, password):
+        status = "Failed"
+        reason = "Incorrect Password"
+        flash("The username or password is wrong!", "error")
+        
+    else:
+        status = "Success"
+        reason = "Valid Login"
         session['user_id'] = user.ID
         session['username'] = user.Username
         session['role'] = user.Role
-        return redirect('/')
-    else:
-        # ERROR MESSAGE FOR LOGIN
-        flash("The username or password is wrong!", "error")
-        return redirect('/')
+
+    # ADAM'S FEATURE: Record the attempt in the database
+    cursor.execute("INSERT INTO LoginLogs (Username, Status, Reason) VALUES (?, ?, ?)", (username, status, reason))
+    
+    conn.commit()
+    conn.close()
+    
+    return redirect('/')
 
 @app.route('/register', methods=['POST'])
 def register():
     name = request.form['name']
+    ic_number = request.form['ic_number'] # Adam's new IC Number field
     email = request.form['email']
     username = request.form['username']
     password = request.form['password']
+    
+    # YOUR SECURITY: Bring the hashing back!
+    hashed_password = generate_password_hash(password)
 
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
-        # Insert the new user. They are automatically a 'Member' with a 0.00 Wallet.
+        # MERGE: Insert both the IC number AND the hashed password
         cursor.execute("""
-            INSERT INTO Users (Name, Email, Username, Password, Role, Wallet) 
-            VALUES (?, ?, ?, ?, 'Member', 0.00)
-        """, (name, email, username, password))
+            INSERT INTO Users (Name, ICNumber, Email, Username, Password, Role, Wallet) 
+            VALUES (?, ?, ?, ?, ?, 'Member', 0.00)
+        """, (name, ic_number, email, username, hashed_password))
         conn.commit()
+        flash("Registration successful! Please log in.", "success")
     except Exception as e:
-        # If the username or email already exists, this prevents the app from crashing
         print("Registration Error:", e)
+        flash("Error: Username or Email already exists!", "error")
         
     conn.close()
-    
-    # Send them back to the login screen after registering
     return redirect('/')
 
 @app.route('/logout')
@@ -176,7 +198,7 @@ def logout():
 @app.route('/borrow', methods=['POST'])
 def borrow():
     book_id = request.form['book_id']
-    due_date = request.form['due_date'] # Gets date from your original prototype's date picker
+    due_date = request.form['due_date'] 
     user_id = session['user_id']
     
     conn = get_db_connection()
@@ -193,7 +215,6 @@ def return_book():
     loan_id = request.form['loan_id']
     conn = get_db_connection()
     cursor = conn.cursor()
-    # Find which book was returned
     cursor.execute("SELECT BookID FROM Loans WHERE ID = ?", (loan_id,))
     book_id = cursor.fetchone()[0]
     
@@ -212,25 +233,17 @@ def pay_penalty():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Check if user has enough money in their wallet
     cursor.execute("SELECT Wallet FROM Users WHERE ID = ?", (user_id,))
     wallet = cursor.fetchone()[0]
     
     if wallet >= fine_amount:
-        # Deduct money from wallet
         cursor.execute("UPDATE Users SET Wallet = Wallet - ? WHERE ID = ?", (fine_amount, user_id))
-        
-        # Get BookID to make it available again
         cursor.execute("SELECT BookID FROM Loans WHERE ID = ?", (loan_id,))
         book_id = cursor.fetchone()[0]
-        
-        # Mark as returned and record the fine paid
         cursor.execute("UPDATE Loans SET Status = 'Returned', ReturnDate = GETDATE(), Fine = ? WHERE ID = ?", (fine_amount, loan_id))
         cursor.execute("UPDATE Books SET Status = 'Available' WHERE ID = ?", (book_id,))
-        
         conn.commit()
     else:
-        # If they don't have enough money, you could add an error message here later
         print("Not enough money in wallet!")
         
     conn.close()
@@ -265,14 +278,15 @@ def change_password():
     cursor.execute("SELECT Password FROM Users WHERE ID = ?", (session['user_id'],))
     user = cursor.fetchone()
 
-    if user and user.Password == current_password:
-        cursor.execute("UPDATE Users SET Password = ? WHERE ID = ?", (new_password, session['user_id']))
+    # YOUR SECURITY: Upgraded change password to securely check and hash the new one!
+    if user and check_password_hash(user.Password, current_password):
+        hashed_new = generate_password_hash(new_password)
+        cursor.execute("UPDATE Users SET Password = ? WHERE ID = ?", (hashed_new, session['user_id']))
         conn.commit()
         flash("Success: Password updated successfully!", "success")
     else:
-        # ERROR MESSAGE FOR CHANGE PASSWORD
         flash("The current password is wrong!", "error")
-
+        
     conn.close()
     return redirect('/')
 
@@ -280,11 +294,10 @@ def change_password():
 @app.route('/add_book', methods=['POST'])
 def add_book():
     title = request.form['title']
-    genre = request.form['genre'] # Grab the new input
+    genre = request.form['genre'] 
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    # Insert both title and genre into the database
     cursor.execute("INSERT INTO Books (Title, Genre, Status) VALUES (?, ?, 'Available')", (title, genre))
     conn.commit()
     conn.close()
@@ -292,7 +305,6 @@ def add_book():
 
 @app.route('/edit_book', methods=['POST'])
 def edit_book():
-    # Make sure only admins can edit!
     if session.get('role') != 'Admin':
         return redirect('/')
 
@@ -302,7 +314,6 @@ def edit_book():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    # Update both the Title and Genre for the specific book
     cursor.execute("UPDATE Books SET Title = ?, Genre = ? WHERE ID = ?", (new_title, new_genre, book_id))
     conn.commit()
     conn.close()
@@ -320,17 +331,12 @@ def delete_book():
     cursor = conn.cursor()
     
     try:
-        # STEP 1: Delete all loan history for this book first
-        # This removes the "links" you see in your screenshot
         cursor.execute("DELETE FROM Loans WHERE BookID = ?", (book_id,))
-        
-        # STEP 2: Now that the history is gone, delete the book itself
         cursor.execute("DELETE FROM Books WHERE ID = ?", (book_id,))
-        
         conn.commit()
         flash("Book and its loan history deleted successfully!", "success")
     except Exception as e:
-        conn.rollback() # Undo changes if something goes wrong
+        conn.rollback() 
         flash("Error: System failed to delete the book.", "error")
         print(e)
         
@@ -354,7 +360,6 @@ def delete_user():
 
     target_id = request.form['user_id']
     
-    # Safety Check: Don't let an Admin delete themselves!
     if int(target_id) == session.get('user_id'):
         flash("Error: You cannot delete your own account!", "error")
         return redirect('/')
@@ -363,9 +368,7 @@ def delete_user():
     cursor = conn.cursor()
     
     try:
-        # Step 1: Clear user's loan history first to avoid FK errors
         cursor.execute("DELETE FROM Loans WHERE UserID = ?", (target_id,))
-        # Step 2: Delete the user
         cursor.execute("DELETE FROM Users WHERE ID = ?", (target_id,))
         conn.commit()
         flash("User and their history deleted successfully!", "success")
