@@ -4,104 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        :root {
+            
+            --primary: #8b5cf6; /* Vibrant Purple */
+            --primary-hover: #7c3aed;
+            --secondary: #6b7280; /* Soft Slate */
+            --bg: #f5f3ff; /* Soft lavender background */
+            --surface: #ffffff; /* Clean white panels */
+            --text: #1f2937; /* Dark readable text */
+            --border: #ede9fe; /* Soft purple borders */
+            --success: #10b981; /* Bright Mint Green */
+            --danger: #f43f5e; /* Cheerful Rose Pink */
+            --warning: #f59e0b; /* Warm Mango/Amber */
+            --info: #0ea5e9; /* Sky Blue */
+        }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 40px 20px; }
         .hidden { display: none !important; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
-        h1, h2, h3 { color: #333; }
-        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #0056b3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
-        button:hover { background: #004494; }
-        .btn-danger { background: #d9534f; width: auto; }
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .nav-tabs button { background: #e9ecef; color: #333; width: auto; }
-        .nav-tabs button.active { background: #0056b3; color: white; }
-        .panel { border: 1px solid #ddd; padding: 20px; border-radius: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f8f9fa; }
+        
+        /* Cheerful bouncy container */
+        .container { background: var(--surface); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.08); max-width: 900px; margin: auto; animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 2px solid #ffffff; }
+        
+        h1, h2, h3 { color: var(--text); font-family: 'Nunito', sans-serif; font-weight: 800; margin-top: 0; }
+        h2 { font-size: 1.85rem; color: #4c1d95; }
+        
+        /* Soft, rounded inputs */
+        input, select { width: 100%; padding: 14px 18px; margin: 8px 0 16px; border: 2px solid var(--border); border-radius: 12px; box-sizing: border-box; font-family: inherit; font-size: 1rem; transition: all 0.2s; background-color: #faf5ff; color: #4c1d95; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); background-color: white; box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15); }
+        
+        /* Bouncy buttons */
+        button { background: var(--primary); color: white; padding: 14px 24px; border: none; border-radius: 12px; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 1.05rem; width: 100%; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 0 var(--primary-hover); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--primary-hover); }
+        button:active { transform: translateY(4px); box-shadow: 0 0 0 var(--primary-hover); }
+        
+        .btn-danger { background: var(--danger); box-shadow: 0 4px 0 #e11d48; }
+        .btn-danger:hover { background: #e11d48; box-shadow: 0 6px 0 #be123c; }
+        .btn-danger:active { transform: translateY(4px); box-shadow: 0 0 0 #be123c; }
+        
+        /* Layout elements */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px dashed var(--border); padding-bottom: 20px; margin-bottom: 25px; }
+        
+        /* Fun Tab Navigation */
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; background: #faf5ff; padding: 8px; border-radius: 16px; }
+        .nav-tabs button { background: transparent; color: var(--secondary); width: auto; box-shadow: none; padding: 12px 18px; border-radius: 10px; }
+        .nav-tabs button:hover { background: white; color: var(--primary); transform: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .nav-tabs button.active { background: white; color: var(--primary); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15); border: 2px solid var(--border); }
+        
+        .panel { animation: fadeIn 0.3s ease-in-out; }
+        
+        /* Clean, friendly Tables */
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; border-radius: 12px; overflow: hidden; border: 2px solid var(--border); }
+        th, td { padding: 16px; text-align: left; border-bottom: 2px solid var(--border); }
+        th { background-color: #faf5ff; font-family: 'Nunito', sans-serif; font-weight: 800; color: #5b21b6; font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #fdfcff; }
+        
+        /* Action Buttons in tables */
+        td button { padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          
           {% if category == 'error' %}
-            <div class="flash-message" style="padding: 15px; margin: 20px auto; max-width: 800px; text-align: center; font-weight: bold; border-radius: 4px; color: white; background-color: #d9534f; transition: opacity 0.5s ease;">
-              {{ message }}
+            <div class="flash-message" style="padding: 18px; margin: 0 auto 24px; max-width: 900px; text-align: center; font-weight: 700; font-family: 'Nunito', sans-serif; border-radius: 12px; color: white; background-color: var(--danger); box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3); animation: slideUp 0.3s;">
+              🚀 {{ message }}
             </div>
           {% else %}
-            <div class="flash-message" style="padding: 15px; margin: 20px auto; max-width: 800px; text-align: center; font-weight: bold; border-radius: 4px; color: white; background-color: #28a745; transition: opacity 0.5s ease;">
-              {{ message }}
+            <div class="flash-message" style="padding: 18px; margin: 0 auto 24px; max-width: 900px; text-align: center; font-weight: 700; font-family: 'Nunito', sans-serif; border-radius: 12px; color: white; background-color: var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); animation: slideUp 0.3s;">
+              🎉 {{ message }}
             </div>
           {% endif %}
-
         {% endfor %}
       {% endif %}
     {% endwith %}
 
     {% if not session.get('user_id') %}
-    <div class="container" id="login-container">
-        <h2 style="text-align: center;">Library Login</h2>
+        {% if reset_user_id %}
+        <div class="container" id="reset-password-container" style="max-width: 450px;">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h2>Create New Password 🔐</h2>
+            <p style="color: var(--secondary); font-size: 0.95rem;">Please enter your new password below.</p>
+        </div>
+        <form action="/update_forgotten_password" method="POST">
+            <input type="password" name="new_password" placeholder="New Strong Password" required>
+            <input type="password" name="confirm_password" placeholder="Confirm New Password" required>
+            <button type="submit" style="background-color: var(--success); box-shadow: 0 4px 0 #059669; margin-top: 10px;">Save New Password</button>
+            <a href="/" style="display: block; text-align: center; margin-top: 15px; color: var(--primary); text-decoration: none; font-weight: 600;">Cancel</a>
+        </form>
+    </div>
+    {% else %}
+    <div class="container" id="login-container" style="max-width: 450px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="background: #ede9fe; width: 80px; height: 80px; border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; transform: rotate(-10deg);">
+                <span style="font-size: 40px;">📚</span>
+            </div>
+            <h2>Library Portal</h2>
+            <p style="color: var(--secondary); font-size: 1rem; margin-top: -10px;">Your gateway to knowledge!</p>
+        </div>
         <form action="/login" method="POST">
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
-            <button type="submit" style="margin-bottom: 10px;">Login</button>
-            <button type="button" onclick="toggleRegister()" style="background-color: #6c757d;">Create New Account</button>
+            <button type="submit" style="margin-top: 10px; margin-bottom: 10px;">Log In</button>
+            
+            <button type="button" onclick="toggleForgotPassword()" style="background-color: transparent; color: var(--secondary); border: none; box-shadow: none; margin-bottom: 10px; font-size: 0.9rem;">Forgot your password?</button>
+            
+            <button type="button" onclick="toggleRegister()" style="background-color: transparent; color: var(--primary); border: 2px solid var(--border); box-shadow: none;">Create a New Account</button>
         </form>
     </div>
 
-    <div class="container hidden" id="register-container">
-        <h2 style="text-align: center;">Register Account</h2>
+    <div class="container hidden" id="register-container" style="max-width: 500px;">
+        <h2 style="text-align: center; margin-bottom: 25px;">Join the Library! ✨</h2>
         <form action="/register" method="POST">
             <input type="text" name="name" placeholder="Full Name" required>
-            <input type="text" name="ic_number" placeholder="IC Number (e.g., 030510123456)" required maxlength="12">
+            <input type="text" name="ic_number" placeholder="IC Number" required maxlength="12">
             <input type="email" name="email" placeholder="Email Address" required>
-            <input type="text" name="username" placeholder="Choose Username" required>
-            <input type="password" name="password" placeholder="Create Password" required>
-            <button type="submit" style="margin-bottom: 10px; background-color: #28a745;">Register</button>
-            <button type="button" onclick="toggleRegister()" style="background-color: #6c757d;">Back to Login</button>
+            <input type="text" name="username" placeholder="Choose a Username" required>
+            <input type="password" name="password" placeholder="Create a Strong Password" required>
+            <button type="submit" style="background-color: var(--success); box-shadow: 0 4px 0 #059669; margin-top: 10px; margin-bottom: 20px;">Complete Registration</button>
+            <button type="button" onclick="toggleRegister()" style="background-color: transparent; color: var(--primary); border: 2px solid var(--border); box-shadow: none;">Back to Login</button>
         </form>
     </div>
+
+    <div class="container hidden" id="forgot-password-container" style="max-width: 450px;">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h2>Account Recovery 🔍</h2>
+            <p style="color: var(--secondary); font-size: 0.95rem;">Verify your identity to reset your password.</p>
+        </div>
+        <form action="/verify_identity" method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="email" name="email" placeholder="Registered Email Address" required>
+            <button type="submit" style="background-color: var(--warning); box-shadow: 0 4px 0 #d97706; margin-top: 10px; margin-bottom: 20px;">Verify Identity</button>
+            <button type="button" onclick="toggleForgotPassword()" style="background-color: transparent; color: var(--primary); border: 2px solid var(--border); box-shadow: none;">Cancel</button>
+        </form>
+    </div>
+    {% endif %}
     
     {% elif session.get('role') == 'Admin' %}
     <div class="container">
         <div class="dashboard-header">
-            <h2>Admin Dashboard</h2>
+            <div>
+                <h2>Admin Control Center 🛠️</h2>
+                <p style="color: var(--secondary); margin: 0; font-size: 0.95rem;">System Management & Security Overview</p>
+            </div>
             <form action="/logout"><button class="btn-danger">Logout</button></form>
         </div>
-        
 
         <div class="nav-tabs">
             <button onclick="showTab('adm-books', this)" class="active">Manage Books</button>
-            <button onclick="showTab('adm-users', this)">Manage Users</button>
-            <button onclick="showTab('adm-penalties', this)">Manage Penalties</button>
-            <button onclick="showTab('adm-logs', this)">Borrow Logs</button>
-            <button onclick="showTab('adm-login-logs', this)">Login Logs</button>
+            <button onclick="showTab('adm-users', this)">Users Records</button>
+            <button onclick="showTab('adm-penalties', this)">Fines & Fees</button>
+            <button onclick="showTab('adm-logs', this)">Borrow Audits</button>
+            <button onclick="showTab('adm-login-logs', this)">Security Logs</button>
         </div>
 
         <div id="adm-books" class="panel">
-            <h3>Add New Book</h3>
-            <form action="/add_book" method="POST" style="display:flex; gap:10px;">
-                <input type="text" name="title" placeholder="Book Title" required style="flex: 2;">
-                <input type="text" name="genre" placeholder="Genre" required style="flex: 1;">
-                <button type="submit" style="width: auto;">Add Book</button>
+            <h3>Add New Book to Catalog</h3>
+            <form action="/add_book" method="POST" style="display:flex; gap:12px; align-items: center; background: #faf5ff; padding: 25px; border-radius: 16px; border: 2px dashed var(--border);">
+                <input type="text" name="title" placeholder="Book Title" required style="flex: 2; margin: 0;">
+                <input type="text" name="genre" placeholder="Category/Genre" required style="flex: 1; margin: 0;">
+                <button type="submit" style="width: auto; margin: 0;">+ Add Book</button>
             </form>
             
-            <table style="margin-top:20px;">
-                <tr><th>ID</th><th>Title</th><th>Genre</th><th>Status</th><th>Action</th></tr>
+            <table style="margin-top: 25px;">
+                <tr><th>ID</th><th>Title</th><th>Category</th><th>Status</th><th>Actions</th></tr>
                 {% for book in data.books %}
                 <tr>
-                    <td>{{ book.ID }}</td>
-                    <td>{{ book.Title }}</td>
-                    <td>{{ book.Genre }}</td>
-                    <td>{{ book.Status }}</td>
+                    <td style="font-weight: 700; color: var(--primary);">#{{ book.ID }}</td>
+                    <td style="font-weight: 500;">{{ book.Title }}</td>
+                    <td><span style="background: #ede9fe; color: #5b21b6; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">{{ book.Genre }}</span></td>
                     <td>
-                        <button onclick="editBook('{{ book.ID }}', '{{ book.Title|escape }}', '{{ book.Genre|escape }}')" style="width: auto; background-color: #ffc107; color: black; margin-right: 5px;">Edit</button>
-                        <button onclick="checkBookStatus('{{ book.Status }}', '{{ book.CurrentUser }}')" style="width: auto; background-color: #17a2b8;">Check Details</button>
-                        <button onclick="deleteBook('{{ book.ID }}', '{{ book.Title|escape }}')" style="width: auto; background-color: #d9534f;">Delete</button>
+                        {% if book.Status == 'Available' %}
+                            <span style="color: var(--success); font-weight: 700; font-size: 0.9rem;">🟢 {{ book.Status }}</span>
+                        {% else %}
+                            <span style="color: var(--warning); font-weight: 700; font-size: 0.9rem;">📙 {{ book.Status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="display: flex; gap: 8px;">
+                        <button onclick="editBook('{{ book.ID }}', '{{ book.Title|escape }}', '{{ book.Genre|escape }}')" style="width: auto; background-color: var(--warning); box-shadow: 0 4px 0 #d97706; color: white;">Edit</button>
+                        <button onclick="checkBookStatus('{{ book.Status }}', '{{ book.CurrentUser }}')" style="width: auto; background-color: var(--info); box-shadow: 0 4px 0 #0284c7; color: white;">Info</button>
+                        <button onclick="deleteBook('{{ book.ID }}', '{{ book.Title|escape }}')" style="width: auto; background-color: var(--danger);">Drop</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -109,49 +197,45 @@
         </div>
 
         <div id="adm-users" class="panel hidden">
-            <h3>Manage Users</h3>
+            <h3>Registered Member & Admin</h3>
             <table>
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>IC</th> 
-                    <th>Role</th>
-                    <th>Wallet</th>
-                    <th>Status</th> 
-                    <th>Penalty</th> 
-                    <th>Actions</th>
+                    <th>ID</th><th>Name</th><th>IC</th><th>Role</th><th>Wallet</th><th>Loan Status</th><th>Penalty</th><th>Admin Actions</th>
                 </tr>
                 {% for user in data.users %}
                 <tr>
-                    <td>{{ user.ID }}</td>
-                    <td>{{ user.Name }}</td>
-                    <td>{{ user.ICNumber }}</td> 
-                    <td><strong>{{ user.Role }}</strong></td>
-                    <td>RM {{ "%.2f"|format(user.Wallet) }}</td>
-                    
-                    <td>
-                        {% if user.LoanInfo %}
-                            <small>{{ user.LoanInfo }}</small>
-                        {% else %}
-                            <span style="color: #6c757d;">No Active Loans</span>
-                        {% endif %}
-                    </td>
-
-                    <td>
-                        {% if user.PenaltyCount > 0 %}
-                            <span style="color: #d9534f; font-weight: bold;">Penalty</span>
-                        {% else %}
-                            <span style="color: #28a745;">No Penalty</span>
-                        {% endif %}
-                    </td>
-
+                    <td style="font-weight: 700; color: var(--primary);">#{{ user.ID }}</td>
+                    <td style="font-weight: 600;">{{ user.Name }}</td>
+                    <td style="font-family: monospace; color: var(--secondary); background: #f3f4f6; padding: 4px; border-radius: 4px;">{{ user.ICNumber }}</td> 
                     <td>
                         {% if user.Role == 'Admin' %}
-                            <button onclick="changeRole('{{ user.ID }}', 'Member')" style="width: auto; background-color: #6c757d; margin-right: 5px;">Set Member</button>
+                            <span style="background: #fce7f3; color: #be185d; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;">Admin</span>
                         {% else %}
-                            <button onclick="changeRole('{{ user.ID }}', 'Admin')" style="width: auto; background-color: #007bff; margin-right: 5px;">Set Admin</button>
+                            <span style="background: #e0f2fe; color: #0369a1; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;">Member</span>
                         {% endif %}
-                        <button onclick="confirmDeleteUser('{{ user.ID }}', '{{ user.Name }}')" style="width: auto; background-color: #d9534f;">Delete</button>
+                    </td>
+                    <td style="font-weight: 800; color: var(--success);">RM {{ "%.2f"|format(user.Wallet) }}</td>
+                    <td>
+                        {% if user.LoanInfo %}
+                            <span style="font-size: 0.85rem; font-weight: 500;">{{ user.LoanInfo }}</span>
+                        {% else %}
+                            <span style="color: var(--secondary); font-size: 0.85rem;">No Active Loans</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.PenaltyCount > 0 %}
+                            <span style="color: var(--danger); font-weight: 700; font-size: 0.85rem;">⚠️ Active</span>
+                        {% else %}
+                            <span style="color: var(--success); font-weight: 700; font-size: 0.85rem;">✅ Clear</span>
+                        {% endif %}
+                    </td>
+                    <td style="display: flex; gap: 8px;">
+                        {% if user.Role == 'Admin' %}
+                            <button onclick="changeRole('{{ user.ID }}', 'Member')" style="background-color: var(--secondary); box-shadow: 0 4px 0 #4b5563; width: auto;">Revoke</button>
+                        {% else %}
+                            <button onclick="changeRole('{{ user.ID }}', 'Admin')" style="background-color: var(--primary); width: auto;">Promote</button>
+                        {% endif %}
+                        <button onclick="confirmDeleteUser('{{ user.ID }}', '{{ user.Name }}')" style="background-color: var(--danger); width: auto;">Remove</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -159,50 +243,55 @@
         </div>
 
         <div id="adm-penalties" class="panel hidden">
-            <h3>Configure Penalty Rates</h3>
-            <form action="/update_penalty" method="POST">
-                <label>Current Late Fee per Day (RM):</label>
-                <input type="number" name="rate" step="0.01" value="{{ data.penalty_rate }}">
-                <button type="submit">Update Rate</button>
+            <h3>Global Financial Settings</h3>
+            <form action="/update_penalty" method="POST" style="background: #faf5ff; padding: 30px; border-radius: 16px; border: 2px dashed var(--border); max-width: 400px; text-align: center;">
+                <label style="font-weight: 700; color: var(--secondary); font-size: 1rem; display: block; margin-bottom: 15px;">Daily Late Fee (RM)</label>
+                <input type="number" name="rate" step="0.01" value="{{ data.penalty_rate }}" style="font-size: 2rem; font-weight: 800; color: var(--primary); text-align: center; height: 70px;">
+                <button type="submit" style="margin-top: 15px;">Update Fee Rate</button>
             </form>
         </div>
 
         <div id="adm-logs" class="panel hidden">
-            <h3>System Borrow Logs</h3>
+            <h3>Immutable Borrow Audits</h3>
             <table>
-                <tr><th>User</th><th>Book</th><th>Borrow Date</th><th>Due Date</th><th>Status</th></tr>
+                <tr><th>User</th><th>Book</th><th>Checkout Date</th><th>Due Date</th><th>Return State</th></tr>
                 {% for log in data.logs %}
-                <tr><td>{{ log.UserName }}</td><td>{{ log.BookTitle }}</td><td>{{ log.BorrowDate }}</td><td>{{ log.DueDate }}</td><td>{{ log.Status }}</td></tr>
+                <tr>
+                    <td style="font-weight: 600;">{{ log.UserName }}</td>
+                    <td style="font-weight: 500;">{{ log.BookTitle }}</td>
+                    <td style="color: var(--secondary);">{{ log.BorrowDate }}</td>
+                    <td style="color: var(--secondary);">{{ log.DueDate }}</td>
+                    <td>
+                        {% if log.Status == 'Returned' %}
+                            <span style="color: var(--success); font-weight: 700;">{{ log.Status }}</span>
+                        {% else %}
+                            <span style="color: var(--warning); font-weight: 700;">{{ log.Status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
             </table>
         </div>
     
         <div id="adm-login-logs" class="panel hidden">
-            <h3>System Login History</h3>
+            <h3>Authentication Security Logs</h3>
             <table>
-                <tr>
-                    <th>Time</th>
-                    <th>Attempted Username</th>
-                    <th>Status</th>
-                    <th>Details</th>
-                </tr>
+                <tr><th>Timestamp</th><th>Target Identity</th><th>Auth Status</th><th>System Diagnosis</th></tr>
                 {% for log in data.login_logs %}
                 <tr>
-                    <td>{{ log.AttemptTime }}</td>
-                    <td>{{ log.Username }}</td>
-                    
+                    <td style="font-family: monospace; color: var(--secondary); background: #f3f4f6; padding: 4px; border-radius: 4px; font-size: 0.85rem;">{{ log.AttemptTime }}</td>
+                    <td style="font-weight: 700; color: var(--text);">{{ log.Username }}</td>
                     <td>
                         {% if log.Status == 'Success' %}
-                            <span style="color: #28a745; font-weight: bold;">{{ log.Status }}</span>
+                            <span style="background: #d1fae5; color: #047857; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;">Authorized</span>
                         {% else %}
-                            <span style="color: #d9534f; font-weight: bold;">{{ log.Status }}</span>
+                            <span style="background: #ffe4e6; color: #e11d48; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;">Blocked</span>
                         {% endif %}
                     </td>
-                    
-                    <td>{{ log.Reason }}</td>
+                    <td style="font-weight: 500; color: var(--secondary);">{{ log.Reason }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="4" style="text-align: center;">No login attempts recorded yet.</td></tr>
+                <tr><td colspan="4" style="text-align: center; color: var(--secondary); padding: 40px; font-weight: 600;">All clear! No suspicious activity detected. ✨</td></tr>
                 {% endfor %}
             </table>
         </div>
@@ -211,39 +300,41 @@
     {% else %}
     <div class="container">
         <div class="dashboard-header">
-            <h2>Member Dashboard</h2>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span style="font-weight: bold;">Wallet: RM {{ "%.2f"|format(data.user.Wallet) }}</span>
-                <form action="/logout"><button class="btn-danger">Logout</button></form>
+            <div>
+                <h2>Hello, {{ data.user.Name }}! 👋</h2>
+                <p style="color: var(--secondary); margin: 0; font-size: 1rem;">Ready to learn something new today?</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="background: #ecfdf5; padding: 10px 20px; border-radius: 14px; border: 2px solid #a7f3d0;">
+                    <span style="font-size: 0.8rem; color: #047857; text-transform: uppercase; font-weight: 800; display: block;">E-Wallet</span>
+                    <span style="font-weight: 800; color: #059669; font-size: 1.3rem;">RM {{ "%.2f"|format(data.user.Wallet) }}</span>
+                </div>
+                <form action="/logout" style="margin: 0;"><button class="btn-danger" style="padding: 12px 20px;">Log Out</button></form>
             </div>
         </div>
 
         <div class="nav-tabs">
-            <button onclick="showTab('mem-search', this)" class="active">Book List</button>
-            <button onclick="showTab('mem-borrow', this)">Borrow Book</button>
-            <button onclick="showTab('mem-return', this)">Return & Penalty</button>
-            <button onclick="showTab('mem-wallet', this)">Reload Wallet</button>
-            <button onclick="showTab('mem-account', this)">User Account</button>
+            <button onclick="showTab('mem-search', this)" class="active">📚 Browse Books</button>
+            <button onclick="showTab('mem-borrow', this)">🎒 Borrow</button>
+            <button onclick="showTab('mem-return', this)">⏱️ My Loans</button>
+            <button onclick="showTab('mem-wallet', this)">💳 Top-up</button>
+            <button onclick="showTab('mem-account', this)">⚙️ Settings</button>
         </div>
 
         <div id="mem-search" class="panel">
-            <h3>Library Catalog</h3> <table>
-                <tr>
-                    <th>ID</th>
-                    <th>Title</th>
-                    <th>Genre</th>
-                    <th>Status</th>
-                </tr>
+            <h3>Library Catalog</h3> 
+            <table>
+                <tr><th>Ref ID</th><th>Book Title</th><th>Category</th><th>Availability</th></tr>
                 {% for book in data.books %}
                 <tr>
-                    <td>{{ book.ID }}</td>
-                    <td>{{ book.Title }}</td>
-                    <td>{{ book.Genre }}</td> 
+                    <td style="font-weight: 700; color: var(--secondary);">#{{ book.ID }}</td>
+                    <td style="font-weight: 600; font-size: 1.05rem;">{{ book.Title }}</td>
+                    <td><span style="background: #ede9fe; color: #5b21b6; padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 700;">{{ book.Genre }}</span></td> 
                     <td>
                         {% if book.Status == 'Available' %}
-                        <span style="color: green; font-weight: bold;">Available</span>
+                        <span style="color: var(--success); font-weight: 800;">🟢 Available</span>
                         {% else %}
-                        <span style="color: #d9534f; font-weight: bold;">Not Available</span>
+                        <span style="color: var(--danger); font-weight: 800;">🛑 Checked Out</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -252,112 +343,93 @@
         </div>
 
         <div id="mem-borrow" class="panel hidden">
-            <h3>Borrow a Book</h3>
-            <form action="/borrow" method="POST">
-                <label>Select Book:</label>
+            <h3>Request a Book</h3>
+            <form action="/borrow" method="POST" style="background: #faf5ff; padding: 30px; border-radius: 16px; border: 2px dashed var(--border); max-width: 500px;">
+                <label style="font-weight: 700; font-size: 0.95rem; color: var(--primary);">1. Select an Available Title</label>
                 <select name="book_id" required>
-                    <option value="">-- Choose a Book --</option>
+                    <option value="">-- Choose from Catalog --</option>
                     {% for book in data.books %}
                         {% if book.Status == 'Available' %}
                             <option value="{{ book.ID }}">{{ book.Title }}</option>
                         {% endif %}
                     {% endfor %}
                 </select>
-                <label>Select Return Date:</label>
+                <label style="font-weight: 700; font-size: 0.95rem; color: var(--primary); margin-top: 15px; display: block;">2. When will you return it?</label>
                 <input type="date" name="due_date" required>
-                <button type="submit">Confirm Borrow</button>
+                <button type="submit" style="margin-top: 20px;">Confirm Request</button>
             </form>
         </div>
 
         <div id="mem-return" class="panel hidden">
-            <h3>Return Book & Penalties</h3>
+            <h3>My Active Loans</h3>
             <table>
-                <tr>
-                    <th>Book Title</th>
-                    <th>Due Date</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
+                <tr><th>Book Title</th><th>Due Date</th><th>Status</th><th>Action</th></tr>
                 {% for loan in data.my_loans %}
                 <tr>
-                    <td>{{ loan.Title }}</td>
-                    <td>{{ loan.DueDate }}</td>
-                    
+                    <td style="font-weight: 700; font-size: 1.05rem;">{{ loan.Title }}</td>
+                    <td style="color: var(--secondary); font-weight: 600;">{{ loan.DueDate }}</td>
                     <td>
                         {% if loan.Status == 'Late' %}
-                            <span style="color: #d9534f; font-weight: bold;">Late</span>
-                            <br><small style="color: #d9534f; font-weight: bold;">(RM {{ "%.2f"|format(loan.Fine) }})</small>
+                            <span style="background: #ffe4e6; color: #e11d48; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 800;">⚠️ Overdue</span>
+                            <br><span style="color: var(--danger); font-size: 0.85rem; font-weight: 700; display: inline-block; margin-top: 5px;">Fine: RM {{ "%.2f"|format(loan.Fine) }}</span>
                         {% else %}
-                            <span style="color: #28a745; font-weight: bold;">{{ loan.Status }}</span>
+                            <span style="background: #d1fae5; color: #047857; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 800;">✅ On Time</span>
                         {% endif %}
                     </td>
-                    
                     <td>
                         {% if loan.Status == 'Late' %}
-                            <form action="/pay_penalty" method="POST">
+                            <form action="/pay_penalty" method="POST" style="margin: 0;">
                                 <input type="hidden" name="loan_id" value="{{ loan.LoanID }}">
                                 <input type="hidden" name="fine_amount" value="{{ loan.Fine }}">
-                                <button type="submit" style="width: auto; background-color: #d9534f;">Pay RM {{ "%.2f"|format(loan.Fine) }} & Return</button>
+                                <button type="submit" style="width: auto; background-color: var(--danger);">Pay Fine & Return</button>
                             </form>
                         {% else %}
-                            <form action="/return_book" method="POST">
+                            <form action="/return_book" method="POST" style="margin: 0;">
                                 <input type="hidden" name="loan_id" value="{{ loan.LoanID }}">
-                                <button type="submit" style="width: auto; background-color: #5cb85c;">Return Book</button>
+                                <button type="submit" style="width: auto; background-color: var(--success); box-shadow: 0 4px 0 #059669;">Return Book</button>
                             </form>
                         {% endif %}
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="4" style="text-align: center;">You have no active borrowed books.</td></tr>
+                <tr><td colspan="4" style="text-align: center; color: var(--secondary); padding: 40px; font-weight: 600;">You don't have any books right now. Go borrow one! 📖</td></tr>
                 {% endfor %}
             </table>
         </div>
 
         <div id="mem-wallet" class="panel hidden">
-            <h3>Reload e-Wallet</h3>
-            <form action="/reload" method="POST">
-                <input type="number" name="amount" placeholder="Enter amount (RM)" min="5" step="0.01" required>
-                <button type="submit">Top Up</button>
+            <h3>Add Funds to Wallet</h3>
+            <form action="/reload" method="POST" style="background: #faf5ff; padding: 30px; border-radius: 16px; border: 2px dashed var(--border); max-width: 400px; text-align: center;">
+                <label style="font-weight: 700; font-size: 1rem; color: var(--primary); display: block; margin-bottom: 10px;">Amount to Top-Up (RM)</label>
+                <input type="number" name="amount" placeholder="0.00" min="5" step="0.01" required style="font-size: 2rem; font-weight: 800; text-align: center; height: 70px;">
+                <button type="submit" style="margin-top: 15px; background-color: var(--success); box-shadow: 0 4px 0 #059669;">Authorize Payment 💸</button>
             </form>
         </div>
 
         <div id="mem-account" class="panel hidden">
-            <h3>Account Settings</h3>
-            <label>Full Name</label>
-            <input type="text" value="{{ data.user.Name }}" disabled>
-            <label>Email Address</label>
-            <input type="email" value="{{ data.user.Email }}" disabled>
+            <h3>My Identity</h3>
+            <div style="background: #f8fafc; padding: 25px; border-radius: 16px; border: 2px solid var(--border); max-width: 500px; margin-bottom: 30px;">
+                <label style="font-size: 0.9rem; color: var(--secondary); font-weight: 700;">Full Name</label>
+                <input type="text" value="{{ data.user.Name }}" disabled style="background: #e2e8f0; color: #475569; border: none; box-shadow: none;">
+                <label style="font-size: 0.9rem; color: var(--secondary); font-weight: 700;">User Email</label>
+                <input type="email" value="{{ data.user.Email }}" disabled style="background: #e2e8f0; color: #475569; border: none; box-shadow: none;">
+            </div>
 
-            <hr style="margin: 20px 0; border: 1px solid #eee;">
-            <h3>Change Password</h3>
-            <form action="/change_password" method="POST">
+            <h3>Update Security</h3>
+            <form action="/change_password" method="POST" style="background: #ffffff; padding: 30px; border-radius: 16px; border: 2px solid var(--border); max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
                 <input type="password" name="current_password" placeholder="Current Password" required>
-                <input type="password" name="new_password" placeholder="New Password" required>
+                <input type="password" name="new_password" placeholder="New Strong Password" required>
                 <input type="password" name="confirm_password" placeholder="Confirm New Password" required>
-                <button type="submit" style="background-color: #ffc107; color: black; margin-top: 10px; width: auto;">Update Password</button>
+                <button type="submit" style="background-color: var(--warning); box-shadow: 0 4px 0 #d97706; color: white; margin-top: 15px;">Update Password 🔒</button>
             </form>
         </div>
     </div>
     {% endif %}
 
-    <form id="edit-form" action="/edit_book" method="POST" class="hidden">
-        <input type="hidden" name="book_id" id="edit-id">
-        <input type="hidden" name="new_title" id="edit-title">
-        <input type="hidden" name="new_genre" id="edit-genre">
-    </form>
-    
-    <form id="delete-form" action="/delete_book" method="POST" class="hidden">
-        <input type="hidden" name="book_id" id="delete-id">
-    </form>
-
-    <form id="delete-user-form" action="/delete_user" method="POST" class="hidden">
-        <input type="hidden" name="user_id" id="target-user-id">
-    </form>
-
-    <form id="role-form" action="/set_role" method="POST" class="hidden">
-        <input type="hidden" name="user_id" id="role-user-id">
-        <input type="hidden" name="new_role" id="new-role-val">
-    </form>
+    <form id="edit-form" action="/edit_book" method="POST" class="hidden"><input type="hidden" name="book_id" id="edit-id"><input type="hidden" name="new_title" id="edit-title"><input type="hidden" name="new_genre" id="edit-genre"></form>
+    <form id="delete-form" action="/delete_book" method="POST" class="hidden"><input type="hidden" name="book_id" id="delete-id"></form>
+    <form id="delete-user-form" action="/delete_user" method="POST" class="hidden"><input type="hidden" name="user_id" id="target-user-id"></form>
+    <form id="role-form" action="/set_role" method="POST" class="hidden"><input type="hidden" name="user_id" id="role-user-id"><input type="hidden" name="new_role" id="new-role-val"></form>
 
     <script>
         function showTab(tabId, btnElement) {
@@ -371,20 +443,16 @@
         }
 
         function checkBookStatus(status, user) {
-            let person = (user && user !== 'None') ? user : "Unknown User";
-            if (status === 'Available') {
-                alert("✔️ This book is currently resting safely in the Library.");
-            } else if (status === 'Lost') {
-                alert("❌ This book was reported LOST by: " + person);
-            } else {
-                alert("📖 This book is currently BORROWED by: " + person);
-            }
+            let person = (user && user !== 'None') ? user : "Unknown Identity";
+            if (status === 'Available') { alert("✔️ Yay! This book is currently resting safely in the Library."); } 
+            else if (status === 'Lost') { alert("❌ Oh no! This book was reported MISSING by: " + person); } 
+            else { alert("📖 This book is currently being read by: " + person); }
         }
 
         function editBook(id, currentTitle, currentGenre) {
-            let newTitle = prompt("Edit Book Title:", currentTitle);
+            let newTitle = prompt("Modify Resource Title:", currentTitle);
             if (newTitle === null || newTitle.trim() === "") return; 
-            let newGenre = prompt("Edit Book Genre:", currentGenre);
+            let newGenre = prompt("Modify Resource Category:", currentGenre);
             if (newGenre === null || newGenre.trim() === "") return; 
 
             document.getElementById('edit-id').value = id;
@@ -402,30 +470,44 @@
             let messages = document.querySelectorAll('.flash-message');
             messages.forEach(function(msg) {
                 msg.style.opacity = '0';
-                setTimeout(function() { msg.style.display = 'none'; }, 500);
+                setTimeout(function() { msg.style.display = 'none'; }, 400);
             });
-        }, 3000);
+        }, 4000);
 
         function deleteBook(id, title) {
-            if (confirm("Are you sure you want to delete '" + title + "' permanently?")) {
+            if (confirm("SECURITY WARNING: Permanently purge '" + title + "' and all associated audit logs?")) {
                 document.getElementById('delete-id').value = id;
                 document.getElementById('delete-form').submit();
             }
         }
 
         function confirmDeleteUser(id, name) {
-            if (confirm("Are you sure you want to permanently delete user '" + name + "' and all their loan history?")) {
+            if (confirm("SECURITY WARNING: Permanently drop user '" + name + "' and purge all loan history?")) {
                 document.getElementById('target-user-id').value = id;
                 document.getElementById('delete-user-form').submit();
             }
         }
 
         function changeRole(id, role) {
-            if (confirm("Change this user's role to " + role + "?")) {
+            if (confirm("Modify access privileges to: " + role + "?")) {
                 document.getElementById('role-user-id').value = id;
                 document.getElementById('new-role-val').value = role;
                 document.getElementById('role-form').submit();
             }
+        }
+
+        function toggleForgotPassword() {
+            const login = document.getElementById('login-container');
+            const forgot = document.getElementById('forgot-password-container');
+            const register = document.getElementById('register-container');
+            
+            if (register && !register.classList.contains('hidden')) {
+                register.classList.add('hidden');
+            }
+            
+            login.classList.toggle('hidden');
+            forgot.classList.toggle('hidden');
+        
         }
     </script>
 </body>
